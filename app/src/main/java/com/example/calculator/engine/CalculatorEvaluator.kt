@@ -215,7 +215,7 @@ object CalculatorEvaluator {
 
     private class ExpressionParser(
         private val tokens: List<String>,
-        private val isDegreeMode: Boolean
+        private val angleUnit: AngleUnit
     ) {
         private var pos = 0
 
@@ -326,44 +326,66 @@ object CalculatorEvaluator {
             }
         }
 
+        private fun toRadians(angle: Double): Double {
+            return when (angleUnit) {
+                AngleUnit.DEG -> Math.toRadians(angle)
+                AngleUnit.RAD -> angle
+                AngleUnit.GRAD -> angle * (Math.PI / 200.0)
+            }
+        }
+
+        private fun fromRadians(rad: Double): Double {
+            return when (angleUnit) {
+                AngleUnit.DEG -> Math.toDegrees(rad)
+                AngleUnit.RAD -> rad
+                AngleUnit.GRAD -> rad * (200.0 / Math.PI)
+            }
+        }
+
         private fun evaluateFunction(func: String, arg: Double): Double {
             return when (func) {
                 "sin" -> {
-                    val rad = if (isDegreeMode) Math.toRadians(arg) else arg
-                    val cleanRad = if (isDegreeMode && (abs(arg % 180.0) < 1e-9)) 0.0 else rad
+                    val rad = toRadians(arg)
+                    val cleanRad = if (angleUnit == AngleUnit.DEG && (abs(arg % 180.0) < 1e-9)) 0.0
+                    else if (angleUnit == AngleUnit.GRAD && (abs(arg % 200.0) < 1e-9)) 0.0
+                    else rad
                     val res = kotlin.math.sin(cleanRad)
                     if (abs(res) < 1e-15) 0.0 else res
                 }
                 "cos" -> {
-                    if (isDegreeMode && abs((abs(arg) - 90.0) % 180.0) < 1e-9) {
+                    val isZeroCos = (angleUnit == AngleUnit.DEG && abs((abs(arg) - 90.0) % 180.0) < 1e-9) ||
+                            (angleUnit == AngleUnit.GRAD && abs((abs(arg) - 100.0) % 200.0) < 1e-9)
+                    if (isZeroCos) {
                         0.0
                     } else {
-                        val rad = if (isDegreeMode) Math.toRadians(arg) else arg
+                        val rad = toRadians(arg)
                         val res = kotlin.math.cos(rad)
                         if (abs(res) < 1e-15) 0.0 else res
                     }
                 }
                 "tan" -> {
-                    if (isDegreeMode && abs((abs(arg) - 90.0) % 180.0) < 1e-9) {
+                    val isUndefined = (angleUnit == AngleUnit.DEG && abs((abs(arg) - 90.0) % 180.0) < 1e-9) ||
+                            (angleUnit == AngleUnit.GRAD && abs((abs(arg) - 100.0) % 200.0) < 1e-9)
+                    if (isUndefined) {
                         throw ArithmeticException("Undefined (tan 90°)")
                     }
-                    val rad = if (isDegreeMode) Math.toRadians(arg) else arg
+                    val rad = toRadians(arg)
                     val res = kotlin.math.tan(rad)
                     if (abs(res) < 1e-15) 0.0 else res
                 }
                 "asin" -> {
                     if (arg < -1.0 || arg > 1.0) throw ArithmeticException("Domain error: asin requires [-1, 1]")
                     val rad = kotlin.math.asin(arg)
-                    if (isDegreeMode) Math.toDegrees(rad) else rad
+                    fromRadians(rad)
                 }
                 "acos" -> {
                     if (arg < -1.0 || arg > 1.0) throw ArithmeticException("Domain error: acos requires [-1, 1]")
                     val rad = kotlin.math.acos(arg)
-                    if (isDegreeMode) Math.toDegrees(rad) else rad
+                    fromRadians(rad)
                 }
                 "atan" -> {
                     val rad = kotlin.math.atan(arg)
-                    if (isDegreeMode) Math.toDegrees(rad) else rad
+                    fromRadians(rad)
                 }
                 "log" -> {
                     if (arg <= 0.0) throw ArithmeticException("Domain error: log requires > 0")
