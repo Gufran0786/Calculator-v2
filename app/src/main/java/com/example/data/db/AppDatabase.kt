@@ -6,12 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [CalculationHistory::class],
-    version = 1,
+    entities = [CalculationHistory::class, AiMathHistory::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun historyDao(): HistoryDao
+    abstract fun aiMathDao(): AiMathDao
+
 
     companion object {
         @Volatile

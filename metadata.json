@@ -1,6 +1,6 @@
 {
   "name": "Calculator",
-  "description": "Modern blurry glassmorphic calculator with custom gallery background, history tracking, 48 comprehensive converters (including Currency & BMI), AMOLED/Light/Neon themes, haptic feedback, floating pop-up window, and copy-paste clipboard operations",
+  "description": "Modern blurry glassmorphic calculator with AI-powered step-by-step math solver supporting live camera capture, multi-modal image and document attachments, interactive follow-up chat, custom gallery background, history tracking, 48 comprehensive converters, AMOLED/Light/Neon themes, haptic feedback, and floating pop-up window",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

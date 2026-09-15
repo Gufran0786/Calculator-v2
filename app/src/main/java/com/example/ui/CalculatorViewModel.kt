@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
 
 enum class AppMode {
     CALCULATOR,
-    CONVERTER
+    CONVERTER,
+    AI_SOLVER
 }
 
 enum class AppThemeMode(val id: String, val title: String) {
@@ -535,4 +536,13 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             updatePreview()
         }
     }
+
+    fun insertExpression(text: String) {
+        _expression.value = text
+        _result.value = null
+        _isEvaluated.value = false
+        _errorMessage.value = null
+        _appMode.value = AppMode.CALCULATOR
+    }
 }
+

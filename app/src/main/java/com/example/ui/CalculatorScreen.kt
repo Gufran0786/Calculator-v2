@@ -30,6 +30,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ContentCopy
@@ -84,6 +85,7 @@ import com.example.ui.converters.ConverterCatalogSheet
 import com.example.ui.converters.FinanceScreen
 import com.example.ui.converters.SpecialConverterScreen
 import com.example.ui.converters.UnitConverterScreen
+import com.example.ai.ui.AiMathSolverScreen
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -301,13 +303,44 @@ fun CalculatorScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = if (appMode == AppMode.CONVERTER) "${selectedConverter.title} ▾" else "Tools (${ConverterType.values().size})",
+                                text = if (appMode == AppMode.CONVERTER) "${selectedConverter.title} ▾" else "Tools",
                                 color = Color.White,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                     }
+
+                    // AI Math Solver tab
+                    GlassSurface(
+                        shape = RoundedCornerShape(14.dp),
+                        backgroundColor = if (appMode == AppMode.AI_SOLVER) Color(0xFF7C3AED).copy(alpha = 0.75f) else Color.White.copy(alpha = 0.12f),
+                        borderColor = if (appMode == AppMode.AI_SOLVER) Color(0xFFA78BFA) else Color.White.copy(alpha = 0.22f),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable { viewModel.setAppMode(AppMode.AI_SOLVER) }
+                            .testTag("btn_mode_ai_solver")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                tint = if (appMode == AppMode.AI_SOLVER) Color(0xFFFDE047) else Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "AI Math",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
                 }
 
                 // Action Icons (PiP/Floating + History + Theme)
@@ -434,26 +467,42 @@ fun CalculatorScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             // Body Content based on AppMode
-            if (appMode == AppMode.CONVERTER) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    when (selectedConverter.group) {
-                        ConverterGroup.UNIT -> UnitConverterScreen(selectedConverter)
-                        ConverterGroup.SPECIAL -> SpecialConverterScreen(selectedConverter)
-                        ConverterGroup.FINANCE -> FinanceScreen(selectedConverter)
+            when (appMode) {
+                AppMode.CONVERTER -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        when (selectedConverter.group) {
+                            ConverterGroup.UNIT -> UnitConverterScreen(selectedConverter)
+                            ConverterGroup.SPECIAL -> SpecialConverterScreen(selectedConverter)
+                            ConverterGroup.FINANCE -> FinanceScreen(selectedConverter)
+                        }
                     }
                 }
-            } else {
-                // Calculator Display + Keypad
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
+                AppMode.AI_SOLVER -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        AiMathSolverScreen(
+                            onInsertExpressionToCalc = { text ->
+                                viewModel.insertExpression(text)
+                            }
+                        )
+                    }
+                }
+                AppMode.CALCULATOR -> {
+                    // Calculator Display + Keypad
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+
                     // Display Screen Area (Frosted Glass Container)
                     val displayBg = when (appTheme) {
                         AppThemeMode.AMOLED -> Color(0xFF09090B)
@@ -1115,6 +1164,7 @@ fun CalculatorScreen(
                     }
                 }
             }
+        }
         }
 
         // History Bottom Sheet
